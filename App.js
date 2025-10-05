@@ -2,14 +2,9 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, TextInput, View, FlatList, Alert, Pressable, Modal } from 'react-native';
 import { SafeAreaView, ListRenderItemInfo } from 'react-native-safe-area-context';
 import React, {useState} from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function App() {
-  
-    // type Habito{
-  //   id: String,
-  //   habito: String,
-  //   count: int
-  // }
   
   const Default_Habits = [
 
@@ -34,44 +29,62 @@ export default function App() {
       count: 0,
     }
 
-    setListaDeHabitos([novoItem, ...ListaDeHabitos]); //...ListadeHabitos cria uma nova lista com o hábito antigos e adiciona novoItem a ele
+    setListaDeHabitos([...ListaDeHabitos, novoItem]); //...ListadeHabitos cria uma nova lista com o hábito antigos e adiciona novoItem a ele
 
     setNovoHabito(''); // limpa o campo de input
 
     setModalVisivel(false); // fecha o modal
   };
 
+  const deletaHabito = (idDelete) => {
+    const novaLista = ListaDeHabitos.filter(habito => habito.id !== idDelete); // .filte vai criar outra lista com todos os habitos menos do que foi deletado por id
+
+    setListaDeHabitos(novaLista);
+  }
+
+
   const itemRender = ({item}) => ( // função que rederiza os itens do flatList
-    <View style={styles.itens}>
+    <View style={styles.habitBox}>
       <Text style={styles.item}>{item.nome}: {item.count}</Text>
+
+      <Pressable
+        style={{color: 'red'}}
+        onPress={() => deletaHabito(item.id)}
+      >
+        <Text style={styles.deleteButton}>X</Text>
+      </Pressable>
     </View>
   );
 
   return (
-    <View style={{flex: 1}}> {/*necessário colocar a tag view para implemetar o botão absoluto da págia (bot~
+    <View style={{flex: 1, backgroundColor: '#def1e8ff'}}> {/*necessário colocar a tag view para implemetar o botão absoluto da págia (bot~
     ao de adicionar novo item na lista)*/}
         <SafeAreaView style={styles.container}>
 
+            <View> 
+              {/* Header */}
+                <Text style={styles.textStyle}>Bad Habit Tracker</Text> 
+            </View>
+            
+              <Text style={{color: '#17c677ff', fontSize: 20, alignSelf: 'center', marginTop: 12, margin: 8}}>Meus Hábitos</Text>
+              <FlatList style={styles.listContainer}
+                data={ListaDeHabitos}
+                renderItem={itemRender}
+                keyExtractor={item => item.id}
+            />
 
-          <Text style={styles.textStyle}>Bad Habit Tracker</Text>
-            <FlatList style={styles.listContainer}
-              data={ListaDeHabitos}
-              renderItem={itemRender}
-              keyExtractor={item => item.id}
-          />
+            <Pressable style={styles.openModalButton}
+              onPress={() => setModalVisivel(true)}
+            >
+              <Text style={{ fontSize: 40, color: '#0b4d3eff'}}>+</Text>
+            </Pressable>
 
-          <Pressable style={styles.openModalButton}
-            onPress={() => setModalVisivel(true)}
-          >
-            <Text style={{ fontSize: 40, color: 'green'}}>+</Text>
-          </Pressable>
-
-          <Pressable style={styles.update}
-            onPress={() => setListaDeHabitos(Default_Habits)}
-          >
-            <Text>Atualizar Lista</Text>
-          </Pressable>
-        <StatusBar style="auto" /> {/*controla a barra de status nativa do dispositivo (Hora, Nível da bateria, Sinal de Wi-Fi e de rede celular, Ícones de notificação) */}
+            <Pressable style={styles.update}
+              onPress={() => setListaDeHabitos(Default_Habits)}
+            >
+              <Text>Atualizar Lista</Text>
+            </Pressable>
+          <StatusBar style="auto" /> {/*controla a barra de status nativa do dispositivo (Hora, Nível da bateria, Sinal de Wi-Fi e de rede celular, Ícones de notificação) */}
 
 
 
@@ -101,27 +114,27 @@ export default function App() {
                       style={styles.closeModalButton}
                       onPress={() => setModalVisivel(false)}
                     >
-                      <Text style={{color: 'red', padding: 5, paddingHorizontal: 10}}>Fechar</Text>
+                      <Text style={{color: 'white', padding: 5, paddingHorizontal: 10}}>Cancelar</Text>
                     </Pressable>
 
                     <Pressable 
                       style={styles.confirmModalButton}
                       onPress={() => adicionarHabito()}
                     >
-                      <Text style={{color: 'green'}}>Adicionar</Text>
+                      <Text style={{color: 'white'}}>Adicionar</Text>
                     </Pressable>
                     
                   </View>
               </View>
             </View>
 
-
             </Modal>
           </View>
-
-      </SafeAreaView>
-    </View>
+        </SafeAreaView>
+      </View>
  
+// cores interessantes: #D3D3D3, #81B29A, #FAF8F5 (tons claros de azul e verde)
+
   );
 }
 
@@ -129,21 +142,45 @@ const styles = StyleSheet.create({
 
   listContainer: {
     color: 'white',
-    backgroundColor: '#9c9797ff',
+    backgroundColor: '#81B29A',
     paddingHorizontal: 50,
+    paddingTop: 50,
+    borderWidth: 1,
+    borderColor: 'black',
   },
 
-  itens: {
+  habitBox: {
     paddingBottom: 20,
     paddingTop: 20,
-    paddingLeft:10,
+    paddingLeft: 16,
     borderWidth: 0.5,
     borderColor: 'black',
-    justifyContent: 'center'
+    borderRadius: 14,
+    justifyContent: 'space-between',
+    marginBottom: 36,
+    backgroundColor: '#8393dbff',
+    flexDirection: 'row',
+
   },
 
   item: {
     color: 'black',
+    
+  },
+
+
+  deleteButton: {
+    justifyContent: 'center',
+    alignItems:'center',
+    color: '#cc1414ff',
+    borderWidth: 1.5,
+    borderColor: '#cc1414ff',
+    borderRadius: 24,
+    paddingHorizontal: 8,
+    paddingTop: 2,
+    paddingBottom: 2, 
+    fontSize: 16,
+    marginRight: 16,
   },
 
   textStyle: {
@@ -191,13 +228,13 @@ const styles = StyleSheet.create({
 
   openModalButton: {
     position: 'absolute',
-    padding: 5,
-    paddingHorizontal: 20,
+    padding: 2,
+    paddingHorizontal: 16,
     right: 60,
     bottom: 100,
     borderWidth: 5,
     borderRadius: 40,
-    borderColor: 'green',
+    borderColor: '#0b4d3eff',
   },
 
   newHabitInput: {
@@ -223,7 +260,7 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#d0d0d0ff',
+    backgroundColor: '#0b4d3eff',
     borderColor: 'black',
     
   },
