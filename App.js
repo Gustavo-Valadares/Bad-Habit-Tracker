@@ -1,45 +1,49 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, TextInput, View, FlatList, Alert, Pressable, Modal } from 'react-native';
-import { SafeAreaView, ListRenderItemInfo } from 'react-native-safe-area-context';
+import { StyleSheet, Text, View, FlatList, Alert, Pressable, Modal } from 'react-native';
+import { SafeAreaView, SafeAreaProvider, } from 'react-native-safe-area-context';
 import React, {useState} from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
+
+import AddModal from './src/components/MenusModais';
 
 export default function App() {
   
   const Default_Habits = [
 
-
   ]
 
   const [ListaDeHabitos, setListaDeHabitos] = useState(Default_Habits); //vairável useState para a list de ListaDeHabitos
 
-  const [novoHabito, setNovoHabito] = useState(''); // variável para setar um novo habito
+  //const [novoHabito, setNovoHabito] = useState(''); // variável para setar um novo habito
 
   const [modalVisivel, setModalVisivel] = useState(false); //variável useState do modal que controla o aparecimento do modal
 
-  const adicionarHabito = () => {
-    if(novoHabito.trim() === ''){ //.thim() é um método que tira espaços antes e depois da string. se não há nenhum caracter além de espaço irá ser uma string vazia (tratamento de excessão)
+  const adicionarHabito = (nomeHabito) => {
+    if(nomeHabito.trim() === ''){ //.thim() é um método que tira espaços antes e depois da string. se não há nenhum caracter além de espaço irá ser uma string vazia (tratamento de excessão)
       Alert.alert("Digite o nome do hábito para adicioná-lo")
       return;
     }
 
     const novoItem = {
       id: String(Date.now()), // gera um id único para cada hábito
-      nome: novoHabito,
+      nome: nomeHabito,
       count: 0,
     }
 
     setListaDeHabitos([...ListaDeHabitos, novoItem]); //...ListadeHabitos cria uma nova lista com o hábito antigos e adiciona novoItem a ele
 
-    setNovoHabito(''); // limpa o campo de input
+    //setNovoHabito(''); // limpa o campo de input
 
     setModalVisivel(false); // fecha o modal
   };
 
-  const deletaHabito = (idDelete) => {
-    const novaLista = ListaDeHabitos.filter(habito => habito.id !== idDelete); // .filte vai criar outra lista com todos os habitos menos do que foi deletado por id
+  const deletaHabito = (idHabito) => {
+    const novaLista = ListaDeHabitos.filter(habito => habito.id !== idHabito); // .filte vai criar outra lista com todos os habitos menos do que foi deletado por id
 
     setListaDeHabitos(novaLista);
+  }
+
+  const renomeiaHabito = (idHabito, novo) => {
+    
   }
 
 
@@ -47,19 +51,28 @@ export default function App() {
     <View style={styles.habitBox}>
       <Text style={styles.item}>{item.nome}: {item.count}</Text>
 
-      <Pressable
-        style={{color: 'red'}}
-        onPress={() => deletaHabito(item.id)}
-      >
-        <Text style={styles.deleteButton}>X</Text>
-      </Pressable>
+      <View style={styles.habitButtonsBox}>
+        <Pressable
+          OnPress={() => renomeiaHabito(item.id)}
+        >
+          <Text style={styles.updateButton}>U</Text>   
+        </Pressable>
+
+        <Pressable
+          style={{color: 'red'}}
+          onPress={() => deletaHabito(item.id)}
+        >
+          <Text style={styles.deleteButton}>X</Text>
+        </Pressable>
+        </View>
     </View>
   );
 
   return (
-    <View style={{flex: 1, backgroundColor: '#def1e8ff'}}> {/*necessário colocar a tag view para implemetar o botão absoluto da págia (bot~
+  <SafeAreaProvider>
+    <SafeAreaView style={{flex: 1, backgroundColor: '#def1e8ff'}}> {/*necessário colocar a tag view para implemetar o botão absoluto da págia (bot~
     ao de adicionar novo item na lista)*/}
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
 
             <View> 
               {/* Header */}
@@ -89,49 +102,15 @@ export default function App() {
 
 
           <View style={{}}>
-            <Modal 
+            <AddModal
               visible={modalVisivel}
-              transparent={true}
-              animationType="fade"
-              onRequestClose={() => setModalVisivel(false)} // permite fechar o menu modal com o borão voltar do android
-            > 
-
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                  <Text style={{color: '#ebebebff', alignSelf: 'center', marginBottom: 20, marginTop: 10, fontSize: 16}}> Adicionar Hábito Novo</Text>
-
-                  <TextInput
-                    style={styles.newHabitInput}
-                    placeholder="Ex: Comer doce"
-                    placeholderTextColor='#a4a4a46e'
-                    value={novoHabito}
-                    onChangeText={setNovoHabito}
-                  >
-                  </TextInput>
-                
-                  <View style={{flexDirection: 'row', borderWidth: 0, borderColor: 'yellow', alignSelf: 'center', marginTop: 15, paddingHorizontal: 10,}}>
-                    <Pressable 
-                      style={styles.closeModalButton}
-                      onPress={() => setModalVisivel(false)}
-                    >
-                      <Text style={{color: 'white', padding: 5, paddingHorizontal: 10}}>Cancelar</Text>
-                    </Pressable>
-
-                    <Pressable 
-                      style={styles.confirmModalButton}
-                      onPress={() => adicionarHabito()}
-                    >
-                      <Text style={{color: 'white'}}>Adicionar</Text>
-                    </Pressable>
-                    
-                  </View>
-              </View>
-            </View>
-
-            </Modal>
+              onClose={() => setModalVisivel(false)}
+              onSubmit={adicionarHabito}
+            />
           </View>
-        </SafeAreaView>
-      </View>
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
  
 // cores interessantes: #D3D3D3, #81B29A, #FAF8F5 (tons claros de azul e verde)
 
@@ -149,8 +128,19 @@ const styles = StyleSheet.create({
     borderColor: 'black',
   },
 
+  openModalButton: {
+    position: 'absolute',
+    padding: 2,
+    paddingHorizontal: 16,
+    right: 60,
+    bottom: 100,
+    borderWidth: 5,
+    borderRadius: 40,
+    borderColor: '#0b4d3eff',
+  },
+
   habitBox: {
-    paddingBottom: 20,
+    paddingBottom: 40,
     paddingTop: 20,
     paddingLeft: 16,
     borderWidth: 0.5,
@@ -163,11 +153,12 @@ const styles = StyleSheet.create({
 
   },
 
-  item: {
-    color: 'black',
-    
+  habitButtonsBox: {
+    borderWidth: 0,
+    borderColor: 'black',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-
 
   deleteButton: {
     justifyContent: 'center',
@@ -183,6 +174,24 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
 
+  updateButton: {
+    justifyContent: 'center',
+    alignItems:'center',
+    color: '#2314ccff',
+    borderWidth: 1.5,
+    borderColor: '#2314ccff',
+    borderRadius: 24,
+    paddingHorizontal: 8,
+    paddingTop: 2,
+    paddingBottom: 2, 
+    fontSize: 16,
+    marginRight: 16,
+  },
+
+  item: {
+    color: 'black',
+  },
+
   textStyle: {
     color: '#ebebebff',
     fontSize: 25,
@@ -190,62 +199,6 @@ const styles = StyleSheet.create({
     paddingTop: 15,
     paddingBottom: 8,
     paddingLeft: 10,
-    
-  },
-
-  modalContent: {
-    width: '80%',
-    backgroundColor: '#313131ff',
-    opacity: 0.90,
-    paddingHorizonal: 50,
-    paddingBottom: 40,
-    borderRadius: 10,
-  },
-
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-
-  },
-
-  confirmModalButton: {
-    borderWidth: 1, 
-    borderColor: 'green', 
-    justifyContent: 'center',
-    paddingHorizontal: 10,
-    borderRadius: 25,
-    marginLeft: 60,
-  },
-
-  closeModalButton: {
-    borderWidth: 1,
-    borderColor: 'red',
-    borderRadius: 25,
-    marginRight: 60,
-
-  },
-
-  openModalButton: {
-    position: 'absolute',
-    padding: 2,
-    paddingHorizontal: 16,
-    right: 60,
-    bottom: 100,
-    borderWidth: 5,
-    borderRadius: 40,
-    borderColor: '#0b4d3eff',
-  },
-
-  newHabitInput: {
-    borderWidth: 1,
-    borderColor: '#c0c0c0ff',
-    borderRadius: 10,
-    color: '#c0c0c0ff',
-    marginHorizontal: 20,
-    marginBottom: 24,
-    paddingLeft: 12,
-
     
   },
 
